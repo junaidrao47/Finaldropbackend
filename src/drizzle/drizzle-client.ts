@@ -1,6 +1,7 @@
 // Lightweight drizzle client that falls back to a stub when dependencies or
 // configuration are not available (helps CI/docker build remain robust).
 let db: any = null;
+let pool: any = null;
 
 try {
   // Use require to avoid TS type/shape errors when packages differ between environments
@@ -13,7 +14,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const cfg = require('../config/database.config').config;
 
-  const pool = new Pool({
+  pool = new Pool({
     connectionString: cfg && cfg.DATABASE_URL ? cfg.DATABASE_URL : process.env.DATABASE_URL,
   });
 
@@ -25,4 +26,4 @@ try {
   db = null;
 }
 
-export { db };
+export { db, pool };

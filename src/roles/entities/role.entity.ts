@@ -1,20 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+// Re-export Drizzle types for backward compatibility
+import { RoleSelect, RoleInsert } from '../../db/schema/roles';
+import { RoleWithRelations } from '../../drizzle/repositories/roles.repository';
 
-@Entity('roles')
-export class Role {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ unique: true })
-    name: string;
-
-    @Column({ default: '' })
-    description: string;
-
-    @Column({ default: true })
-    isActive: boolean;
-    
-    // JSONB column storing permission map, e.g. { "organizations": ["read","update"], ... }
-    @Column({ type: 'json', nullable: true })
-    permissions: Record<string, string[]> | null;
-}
+// Legacy type alias for backward compatibility
+export type Role = RoleWithRelations;
+export type { RoleSelect, RoleInsert, RoleWithRelations };

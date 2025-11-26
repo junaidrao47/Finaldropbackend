@@ -1,38 +1,43 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Role } from './entities/role.entity';
+import { Injectable, Logger } from '@nestjs/common';
+import { DrizzleRolesRepository, RoleWithRelations } from '../drizzle/repositories/roles.repository';
 
 @Injectable()
 export class RolesService {
+  private readonly logger = new Logger(RolesService.name);
+
   constructor(
-    @InjectRepository(Role)
-    private rolesRepository: Repository<Role>,
+    private readonly rolesRepo: DrizzleRolesRepository,
   ) {}
 
-  async create(roleName: string): Promise<Role> {
-    const role = this.rolesRepository.create({ name: roleName });
-    return this.rolesRepository.save(role);
+  async create(roleName: string, description?: string, permissions?: Record<string, string[]>): Promise<RoleWithRelations> {
+    return this.rolesRepo.create({
+      name: roleName,
+      description: description || null,
+      permissions: permissions || null,
+    });
   }
 
-  async findByName(name: string): Promise<Role | null> {
-    return this.rolesRepository.findOneBy({ name });
+  async findByName(name: string): Promise<RoleWithRelations | null> {
+    return this.rolesRepo.findByName(name);
   }
 
-  async findAll(): Promise<Role[]> {
-    return this.rolesRepository.find();
+  async findAll(): Promise<RoleWithRelations[]> {
+    return this.rolesRepo.findAll();
   }
 
-  async findOne(id: number): Promise<Role | null> {
-    return this.rolesRepository.findOneBy({ id });
+  async findOne(id: number): Promise<RoleWithRelations | null> {
+    return this.rolesRepo.findById(id);
   }
 
-  async update(id: number, roleName: string): Promise<Role | null> {
-    await this.rolesRepository.update(id, { name: roleName });
-    return this.findOne(id);
+  async update(id: number, roleName: string): Promise<RoleWithRelations | null> {
+    return this.rolesRepo.update(id, { name: roleName });
+  }
+
+  async updatePermissions(id: number, permissions: Record<string, string[]>): Promise<RoleWithRelations | null> {
+    return this.rolesRepo.updatePermissions(id, permissions);
   }
 
   async remove(id: number): Promise<void> {
-    await this.rolesRepository.delete(id);
+    await this.rolesRepo.delete(id);
   }
 }

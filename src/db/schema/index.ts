@@ -1,62 +1,44 @@
-// Lightweight schema stubs to keep the build passing.
-// The repository previously contained Drizzle schema code that depends on a
-// specific Drizzle version; to avoid blocking the build we export simple stubs.
-// Replace these with real schema definitions once an ORM/version is chosen.
+// Drizzle schema exports - central barrel file
+// FinalDrop Database Schema with UUID7
 
-// @ts-nocheck
-export const db: any = null;
-export const users: any = {};
-export const organizations: any = {};
-export const roles: any = {};
-export const memberships: any = {};
-// @ts-nocheck
-// Drizzle schema files are written against a specific Drizzle version and can
-// produce type errors during builds if a different release is installed. We
-// add ts-nocheck to avoid blocking builds; align these files to your chosen
-// Drizzle version when you standardize the ORM.
-import { drizzle } from 'drizzle-orm';
-import { pgTable, serial, varchar, timestamp, boolean } from 'drizzle-orm/pg-core';
-import { Database } from 'drizzle-orm/postgres-js';
-import { createClient } from 'postgres';
+// Common utilities
+export * from './common';
 
-const client = createClient({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+// Lookup tables
+export * from './status';
 
-export const db = drizzle(client);
+// Core entities (using new UUID-based schemas)
+export * from './organizations.new';
+export * from './users.new';
+export * from './carriers';
 
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  username: varchar('username', { length: 255 }).notNull(),
-  password: varchar('password', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
-});
+// Organization related
+export * from './organizations-related';
 
-export const organizations = pgTable('organizations', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
-});
+// User related
+export * from './users-related';
 
-export const roles = pgTable('roles', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
-});
+// Warehouse and layout
+export * from './warehouses';
 
-export const memberships = pgTable('memberships', {
-  id: serial('id').primaryKey(),
-  userId: serial('user_id').notNull(),
-  organizationId: serial('organization_id').notNull(),
-  roleId: serial('role_id').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
-});
+// Roles and permissions
+export * from './roles-permissions';
+
+// Package related
+export * from './packages';
+
+// Carrier related
+export * from './carriers-related';
+
+// Utility and logging
+export * from './utility';
+
+// Legacy schemas (kept for backward compatibility during migration)
+// TODO: Remove these once all services are migrated to new schemas
+// export * from './roles';
+// export * from './organizations';
+// export * from './users';
+// export * from './memberships';
+// export * from './receives';
+// export * from './uploads_queue';
+// export * from './trusted_devices';

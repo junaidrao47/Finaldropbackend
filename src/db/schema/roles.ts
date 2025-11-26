@@ -1,10 +1,14 @@
-import { pgTable, serial, text, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core';
 
-// Keep this small and compatible with the version of drizzle-orm in use.
-// Some Drizzle builder APIs differ between versions; avoid optional
-// chain helper methods here to reduce typing mismatches during build.
 export const roles = pgTable('roles', {
   id: serial('id').primaryKey(),
-  name: varchar('name', { length: 50 }).notNull(),
+  name: varchar('name', { length: 50 }).notNull().unique(),
   description: text('description'),
+  isActive: boolean('is_active').default(true).notNull(),
+  permissions: jsonb('permissions').$type<Record<string, string[]>>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export type RoleSelect = typeof roles.$inferSelect;
+export type RoleInsert = typeof roles.$inferInsert;

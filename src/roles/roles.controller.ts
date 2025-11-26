@@ -1,25 +1,24 @@
 import { Controller, Get, Post, Body, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
-import { Role } from './entities/role.entity';
+import { RoleWithRelations } from '../drizzle/repositories/roles.repository';
 
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
-  create(@Body() createRoleDto: CreateRoleDto): Promise<Role> {
-    // RolesService.create expects a role name string; pass the DTO's name.
+  create(@Body() createRoleDto: CreateRoleDto): Promise<RoleWithRelations> {
     return this.rolesService.create(createRoleDto.name);
   }
 
   @Get()
-  findAll(): Promise<Role[]> {
+  findAll(): Promise<RoleWithRelations[]> {
     return this.rolesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<Role | null> {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<RoleWithRelations | null> {
     return this.rolesService.findOne(id);
   }
 

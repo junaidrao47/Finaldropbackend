@@ -1,37 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Organization } from '../../organizations/entities/organization.entity';
-import { Role } from '../../roles/entities/role.entity';
+// Re-export Drizzle types for backward compatibility
+import { UserSelect, UserInsert } from '../../db/schema/users';
+import { UserWithRelations } from '../../drizzle/repositories/users.repository';
 
-@Entity('users')
-export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ unique: true })
-    email: string;
-
-    @Column()
-    password: string;
-
-    @Column()
-    firstName: string;
-
-    @Column()
-    lastName: string;
-
-    // Keep relations on the owning side only (no inverse property required)
-    @ManyToOne(() => Organization)
-    organization: Organization;
-
-    @ManyToOne(() => Role)
-    role: Role;
-
-    @Column({ default: true })
-    isActive: boolean;
-
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    createdAt: Date;
-
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-    updatedAt: Date;
-}
+// Legacy type alias for backward compatibility
+export type User = UserWithRelations;
+export type { UserSelect, UserInsert, UserWithRelations };

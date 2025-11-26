@@ -1,73 +1,64 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import { DrizzleUsersRepository, UserWithRelations } from '../drizzle/repositories/users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Membership } from '../memberships/membership.entity';
-import { Organization } from '../organizations/entities/organization.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+  private readonly logger = new Logger(UsersService.name);
 
-    @InjectRepository(Membership)
-    private membershipsRepository: Repository<Membership>,
+  constructor(
+    private readonly usersRepo: DrizzleUsersRepository,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    // Create a shallow user object — repository.create expects entity-like input.
-    // DTOs may carry role/organization as IDs (strings); let TypeORM accept relation ids by casting.
-    const user = this.usersRepository.create(createUserDto as any);
-    return this.usersRepository.save(user as any);
-  }
-
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
-  }
-
-  async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ email });
-  }
-
-  async findOne(id: number): Promise<User | null> {
-    return this.usersRepository.findOneBy({ id });
-  }
-
-  async findOrganizations(userId: number): Promise<Organization[]> {
-    // Find memberships for the user and return the organizations
-    const memberships = await this.membershipsRepository.find({
-      where: { user: { id: userId } },
-      relations: ['organization'],
+  async create(createUserDto: CreateUserDto): Promise<UserWithRelations> {
+    return this.usersRepo.create({
+      email: createUserDto.email,
+      password: createUserDto.password,
+      firstName: createUserDto.firstName,
+      lastName: createUserDto.lastName,
+      organizationId: (createUserDto as any).organizationId || null,
+      roleId: (createUserDto as any).roleId || null,
     });
-    return memberships.map(m => m.organization);
   }
 
-  async switchOrganization(userId: number, orgId: number): Promise<User> {
+  async findAll(): Promise<UserWithRelations[]> {
+    return this.usersRepo.findAll();
+  }
+
+  async findByEmail(email: string): Promise<UserWithRelations | null> {
+    return this.usersRepo.findByEmail(email);
+  }
+
+  async findOne(id: number): Promise<UserWithRelations | null> {
+    return this.usersRepo.findById(id);
+  }
+
+  async findOrganizations(userId: number): Promise<Array<{ id: number; name: string }>> {
+    return this.usersRepo.findUserOrganizations(userId);
+  }
+
+  async switchOrganization(userId: number, orgId: number): Promise<UserWithRelations> {
     // Ensure membership exists
-    const membership = await this.membershipsRepository.findOne({
-      where: { user: { id: userId }, organization: { id: orgId } },
-      relations: ['organization'],
-    });
-    if (!membership) {
+    const isMember = await this.usersRepo.checkMembership(userId, orgId);
+    if (!isMember) {
       throw new ForbiddenException('User is not a member of the target organization');
     }
+    
     // Update user's active organization
-    const user = await this.findOne(userId);
-    if (!user) throw new NotFoundException('User not found');
-    user.organization = membership.organization;
-    await this.usersRepository.save(user as any);
+    const user = await this.usersRepo.updateOrganization(userId, orgId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
-    await this.usersRepository.update(id, updateUserDto as any);
-    return this.findOne(id);
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserWithRelations | null> {
+    return this.usersRepo.update(id, updateUserDto as any);
   }
 
   async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+    await this.usersRepo.delete(id);
   }
 }

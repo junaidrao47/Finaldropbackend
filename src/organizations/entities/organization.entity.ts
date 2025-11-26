@@ -1,19 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+// Re-export Drizzle types for backward compatibility
+import { OrganizationSelect, OrganizationInsert } from '../../db/schema/organizations';
+import { OrganizationWithRelations } from '../../drizzle/repositories/organizations.repository';
 
-@Entity('organizations')
-export class Organization {
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column({ unique: true })
-    name: string;
-
-    @Column()
-    description: string;
-
-    @Column()
-    createdAt: Date;
-
-    @Column()
-    updatedAt: Date;
-}
+// Legacy type alias for backward compatibility
+export type Organization = OrganizationWithRelations;
+export type { OrganizationSelect, OrganizationInsert, OrganizationWithRelations };

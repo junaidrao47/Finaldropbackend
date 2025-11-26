@@ -1,35 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Logger } from '@nestjs/common';
+import { DrizzleOrganizationsRepository, OrganizationWithRelations } from '../drizzle/repositories/organizations.repository';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { Organization } from './entities/organization.entity';
 
 @Injectable()
 export class OrganizationsService {
+  private readonly logger = new Logger(OrganizationsService.name);
+
   constructor(
-    @InjectRepository(Organization)
-    private organizationsRepository: Repository<Organization>,
+    private readonly organizationsRepo: DrizzleOrganizationsRepository,
   ) {}
 
-  async create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
-    const organization = this.organizationsRepository.create(createOrganizationDto);
-    return this.organizationsRepository.save(organization);
+  async create(createOrganizationDto: CreateOrganizationDto): Promise<OrganizationWithRelations> {
+    return this.organizationsRepo.create({
+      name: createOrganizationDto.name,
+    });
   }
 
-  async findAll(): Promise<Organization[]> {
-    return this.organizationsRepository.find();
+  async findAll(): Promise<OrganizationWithRelations[]> {
+    return this.organizationsRepo.findAll();
   }
 
-  async findOne(id: number): Promise<Organization | null> {
-    return this.organizationsRepository.findOneBy({ id });
+  async findOne(id: number): Promise<OrganizationWithRelations | null> {
+    return this.organizationsRepo.findById(id);
   }
 
-  async update(id: number, updateOrganizationDto: CreateOrganizationDto): Promise<Organization | null> {
-    await this.organizationsRepository.update(id, updateOrganizationDto as any);
-    return this.findOne(id);
+  async findByName(name: string): Promise<OrganizationWithRelations | null> {
+    return this.organizationsRepo.findByName(name);
+  }
+
+  async update(id: number, updateOrganizationDto: CreateOrganizationDto): Promise<OrganizationWithRelations | null> {
+    return this.organizationsRepo.update(id, {
+      name: updateOrganizationDto.name,
+    });
   }
 
   async remove(id: number): Promise<void> {
-    await this.organizationsRepository.delete(id);
+    await this.organizationsRepo.delete(id);
   }
 }

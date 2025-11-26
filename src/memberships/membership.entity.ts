@@ -1,25 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from '../users/entities/user.entity';
-import { Organization } from '../organizations/entities/organization.entity';
-import { Role } from '../roles/entities/role.entity';
+// Re-export Drizzle types for backward compatibility
+import { MembershipSelect, MembershipInsert } from '../db/schema/memberships';
+import { MembershipWithRelations } from '../drizzle/repositories/memberships.repository';
 
-@Entity('memberships')
-export class Membership {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @ManyToOne(() => User, { eager: true })
-  user: User;
-
-  @ManyToOne(() => Organization, { eager: true })
-  organization: Organization;
-
-  @ManyToOne(() => Role, { eager: true })
-  role: Role;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
-}
+// Legacy type alias for backward compatibility
+export type Membership = MembershipWithRelations;
+export type { MembershipSelect, MembershipInsert, MembershipWithRelations };
