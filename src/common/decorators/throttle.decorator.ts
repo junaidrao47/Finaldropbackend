@@ -1,4 +1,4 @@
-import { SetMetadata } from '@nestjs/common';
+import { SetMetadata, applyDecorators } from '@nestjs/common';
 
 export const SKIP_THROTTLE_KEY = 'skipThrottle';
 export const THROTTLE_LIMIT_KEY = 'throttleLimit';
@@ -14,9 +14,9 @@ export const SkipThrottle = () => SetMetadata(SKIP_THROTTLE_KEY, true);
  * @param limit - Number of requests allowed
  * @param ttl - Time window in seconds
  */
-export const Throttle = (limit: number, ttl: number) => {
-  return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
-    SetMetadata(THROTTLE_LIMIT_KEY, limit)(target, propertyKey, descriptor);
-    SetMetadata(THROTTLE_TTL_KEY, ttl)(target, propertyKey, descriptor);
-  };
+export const CustomThrottle = (limit: number, ttl: number) => {
+  return applyDecorators(
+    SetMetadata(THROTTLE_LIMIT_KEY, limit),
+    SetMetadata(THROTTLE_TTL_KEY, ttl),
+  );
 };

@@ -36,6 +36,9 @@ export * from './utility';
 // Chat and support
 export * from './chat';
 
+// Settings extended (contacts, blacklist, warning messages, etc.)
+export * from './settings-extended';
+
 // Legacy schemas (kept for backward compatibility during migration)
 // TODO: Remove these once all services are migrated to new schemas
 // export * from './roles';
