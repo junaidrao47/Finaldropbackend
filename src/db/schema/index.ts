@@ -33,6 +33,9 @@ export * from './carriers-related';
 // Utility and logging
 export * from './utility';
 
+// Chat and support
+export * from './chat';
+
 // Legacy schemas (kept for backward compatibility during migration)
 // TODO: Remove these once all services are migrated to new schemas
 // export * from './roles';

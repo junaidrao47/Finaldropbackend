@@ -13,6 +13,15 @@ import { EventsModule } from './events/events.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { ContactsModule } from './contacts/contacts.module';
+import { SettingsModule } from './settings/settings.module';
+import { CarriersModule } from './carriers/carriers.module';
+import { WarehousesModule } from './warehouses/warehouses.module';
+import { PackagesModule } from './packages/packages.module';
+import { OcrModule } from './ocr/ocr.module';
+import { PodModule } from './pod/pod.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -24,6 +33,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     // Drizzle ORM - Global module for database access
     DrizzleModule,
     LoggerModule,
+    // Cloudinary - Global module for file uploads
+    CloudinaryModule,
     AuthModule,
     UsersModule,
     OrganizationsModule,
@@ -34,6 +45,14 @@ import { DashboardModule } from './dashboard/dashboard.module';
     DevicesModule,
     EventsModule,
     DashboardModule,
+    TransactionsModule,
+    ContactsModule,
+    SettingsModule,
+    CarriersModule,
+    WarehousesModule,
+    PackagesModule,
+    OcrModule,
+    PodModule,
   ],
   providers: [
     {

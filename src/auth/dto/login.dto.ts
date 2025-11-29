@@ -1,9 +1,19 @@
-import { IsString, IsEmail, IsOptional, IsBoolean, IsUUID, MaxLength } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsBoolean, IsUUID, IsNumber, MaxLength } from 'class-validator';
 
 /**
  * Login DTO
+ * Supports login via email OR phone number (as shown in design)
  */
 export class LoginDto {
+  /**
+   * User can login with either email or phone number
+   * The frontend sends this as a single field
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  emailOrPhone?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(255)
@@ -13,8 +23,20 @@ export class LoginDto {
   @IsEmail()
   email?: string;
 
+  @IsOptional()
   @IsString()
+  @MaxLength(30)
+  phoneNumber?: string;
+
+  @IsString({ message: 'Password is required' })
   password: string;
+
+  /**
+   * Remember me checkbox from design
+   */
+  @IsOptional()
+  @IsBoolean()
+  rememberMe?: boolean;
 
   @IsOptional()
   @IsString()
@@ -84,8 +106,8 @@ export class VerifyOtpLoginDto {
  * Switch Organization DTO (SEC-004)
  */
 export class SwitchOrganizationDto {
-  @IsUUID()
-  organizationId: string;
+  @IsNumber()
+  organizationId: number;
 }
 
 /**

@@ -1,42 +1,44 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, IsBoolean, MaxLength, IsUUID } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, IsBoolean, MaxLength, IsUUID, Matches } from 'class-validator';
 
 /**
  * Register DTO - New user registration
+ * Matches the design: First Name, Last Name, Email, Password, Phone Number
  */
 export class RegisterDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
   @IsString()
-  @IsNotEmpty()
-  @MinLength(8)
-  password: string;
-
-  @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'First name is required' })
   @MaxLength(100)
   firstName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Last name is required' })
   @MaxLength(100)
   lastName: string;
+
+  @IsEmail({}, { message: 'Please provide a valid email address' })
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Password is required' })
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  password: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Phone number is required' })
+  @MaxLength(30)
+  phoneNumber: string;
+
+  // Optional country code for phone number formatting
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  countryCode?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(255)
   displayName?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(30)
-  phoneNumber?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(30)
-  mobileNumber?: string;
 
   @IsOptional()
   @IsString()
@@ -65,6 +67,11 @@ export class RegisterDto {
   @IsOptional()
   @IsBoolean()
   trustDevice?: boolean;
+
+  // Terms acceptance
+  @IsOptional()
+  @IsBoolean()
+  acceptedTerms?: boolean;
 }
 
 /**

@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsDateString, IsNumber, IsUUID, IsEnum, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsDateString, IsNumber, IsUUID, IsEnum, IsArray, IsInt, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 
 /**
  * Dashboard Filter Period
@@ -10,6 +11,7 @@ export enum DashboardPeriod {
   LAST_30_DAYS = 'last_30_days',
   THIS_MONTH = 'this_month',
   LAST_MONTH = 'last_month',
+  THIS_WEEK = 'this_week',
   CUSTOM = 'custom',
 }
 
@@ -39,7 +41,80 @@ export class DashboardFilterDto {
 }
 
 /**
- * Dashboard Statistics Response
+ * Summary Statistics Response - matches design with 6 cards
+ */
+export interface SummaryStatisticsResponse {
+  received: StatCard;
+  delivered: StatCard;
+  transferred: StatCard;
+  return: StatCard;
+  pending: StatCard;
+  cancelled: StatCard;
+}
+
+export interface StatCard {
+  count: number;
+  changePercent: number;
+  trend: 'up' | 'down' | 'neutral';
+}
+
+/**
+ * Performance Chart Response - Weekly line chart with multiple series
+ */
+export interface PerformanceChartResponse {
+  period: string;
+  labels: string[]; // ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+  datasets: PerformanceDataset[];
+}
+
+export interface PerformanceDataset {
+  name: string; // 'Received', 'Delivered', 'Transferred', 'Returned', 'Pending'
+  color: string;
+  data: number[];
+}
+
+/**
+ * Recent Transactions Response - Table data
+ */
+export interface RecentTransactionsResponse {
+  transactions: TransactionItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+export interface TransactionItem {
+  id: string;
+  date: Date;
+  deliveredBy: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  receiver: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  status: string;
+  statusColor: string;
+  invoice: string;
+  tracking: string;
+}
+
+/**
+ * Recent Activity Summary Response - Activity counts for dashboard
+ */
+export interface RecentActivitySummaryResponse {
+  dispatched: number;
+  blacklist: number;
+  linkedDevices: number;
+  received: number;
+}
+
+/**
+ * Dashboard Statistics Response (Legacy - keeping for backward compatibility)
  */
 export interface DashboardStatsResponse {
   // Summary Cards (DASH-001)
@@ -47,12 +122,16 @@ export interface DashboardStatsResponse {
   totalPackagesDelivered: number;
   totalPackagesPending: number;
   totalPackagesReturned: number;
+  totalPackagesTransferred: number;
+  totalPackagesCancelled: number;
 
   // Change percentages
   receivedChangePercent: number;
   deliveredChangePercent: number;
   pendingChangePercent: number;
   returnedChangePercent: number;
+  transferredChangePercent: number;
+  cancelledChangePercent: number;
 
   // Additional stats
   avgProcessingTimeHours: number;
@@ -164,4 +243,75 @@ export class QuickStatsDto {
   @IsOptional()
   @IsEnum(DashboardPeriod)
   period?: DashboardPeriod;
+}
+
+/**
+ * Recent Transactions Query DTO
+ */
+export class RecentTransactionsQueryDto {
+  @IsOptional()
+  @IsEnum(DashboardPeriod)
+  period?: DashboardPeriod;
+
+  @IsOptional()
+  @IsDateString()
+  dateFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateTo?: string;
+
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+}
+
+/**
+ * Performance Chart Query DTO
+ */
+export class PerformanceChartQueryDto {
+  @IsOptional()
+  @IsEnum(DashboardPeriod)
+  period?: DashboardPeriod;
+
+  @IsOptional()
+  @IsDateString()
+  dateFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateTo?: string;
+
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
 }

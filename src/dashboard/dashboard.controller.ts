@@ -1,6 +1,11 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
-import { DashboardFilterDto, QuickStatsDto } from './dto/dashboard.dto';
+import { 
+  DashboardFilterDto, 
+  QuickStatsDto, 
+  RecentTransactionsQueryDto, 
+  PerformanceChartQueryDto 
+} from './dto/dashboard.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 
 @Controller('dashboard')
@@ -9,7 +14,43 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   /**
-   * Get dashboard summary statistics (DASH-001)
+   * Get dashboard summary statistics (6 cards: Received, Delivered, Transferred, Return, Pending, Cancelled)
+   * GET /dashboard/summary
+   */
+  @Get('summary')
+  async getSummaryStatistics(@Query() filter: DashboardFilterDto) {
+    return this.dashboardService.getSummaryStatistics(filter);
+  }
+
+  /**
+   * Get performance chart data (Weekly line chart with multiple series)
+   * GET /dashboard/performance
+   */
+  @Get('performance')
+  async getPerformanceChart(@Query() filter: PerformanceChartQueryDto) {
+    return this.dashboardService.getPerformanceChart(filter);
+  }
+
+  /**
+   * Get recent transactions for dashboard table
+   * GET /dashboard/transactions
+   */
+  @Get('transactions')
+  async getRecentTransactions(@Query() query: RecentTransactionsQueryDto) {
+    return this.dashboardService.getRecentTransactions(query);
+  }
+
+  /**
+   * Get activity summary (Dispatched, Blacklist, Linked devices, Received)
+   * GET /dashboard/activity-summary
+   */
+  @Get('activity-summary')
+  async getActivitySummary(@Query() filter: DashboardFilterDto) {
+    return this.dashboardService.getActivitySummary(filter);
+  }
+
+  /**
+   * Get dashboard summary statistics (DASH-001) - Legacy endpoint
    * GET /dashboard/stats
    */
   @Get('stats')

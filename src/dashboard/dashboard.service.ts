@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { eq, sql, and, gte, lte, count, desc, or } from 'drizzle-orm';
+import { eq, sql, and, gte, lte, count, desc, or, like, asc } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
 import {
@@ -12,6 +12,12 @@ import {
   DashboardChartResponse,
   WarehouseOccupancyResponse,
   TopCarriersResponse,
+  SummaryStatisticsResponse,
+  PerformanceChartResponse,
+  RecentTransactionsResponse,
+  RecentTransactionsQueryDto,
+  RecentActivitySummaryResponse,
+  PerformanceChartQueryDto,
 } from './dto/dashboard.dto';
 
 @Injectable()
@@ -47,12 +53,270 @@ export class DashboardService {
       totalPackagesDelivered: currentPeriod.delivered,
       totalPackagesPending: currentPeriod.pending,
       totalPackagesReturned: currentPeriod.returned,
+      totalPackagesTransferred: currentPeriod.transferred,
+      totalPackagesCancelled: currentPeriod.cancelled,
       receivedChangePercent: calcChange(currentPeriod.received, previousPeriod.received),
       deliveredChangePercent: calcChange(currentPeriod.delivered, previousPeriod.delivered),
       pendingChangePercent: calcChange(currentPeriod.pending, previousPeriod.pending),
       returnedChangePercent: calcChange(currentPeriod.returned, previousPeriod.returned),
+      transferredChangePercent: calcChange(currentPeriod.transferred, previousPeriod.transferred),
+      cancelledChangePercent: calcChange(currentPeriod.cancelled, previousPeriod.cancelled),
       avgProcessingTimeHours: 24, // Placeholder - would need additional fields in schema
       customerSatisfactionScore: 4.5, // Placeholder - would come from feedback system
+    };
+  }
+
+  /**
+   * Get summary statistics formatted for the dashboard design (6 cards)
+   */
+  async getSummaryStatistics(filter: DashboardFilterDto): Promise<SummaryStatisticsResponse> {
+    const stats = await this.getStats(filter);
+
+    const getTrend = (change: number): 'up' | 'down' | 'neutral' => {
+      if (change > 0) return 'up';
+      if (change < 0) return 'down';
+      return 'neutral';
+    };
+
+    return {
+      received: {
+        count: stats.totalPackagesReceived,
+        changePercent: stats.receivedChangePercent,
+        trend: getTrend(stats.receivedChangePercent),
+      },
+      delivered: {
+        count: stats.totalPackagesDelivered,
+        changePercent: stats.deliveredChangePercent,
+        trend: getTrend(stats.deliveredChangePercent),
+      },
+      transferred: {
+        count: stats.totalPackagesTransferred,
+        changePercent: stats.transferredChangePercent,
+        trend: getTrend(stats.transferredChangePercent),
+      },
+      return: {
+        count: stats.totalPackagesReturned,
+        changePercent: stats.returnedChangePercent,
+        trend: getTrend(stats.returnedChangePercent),
+      },
+      pending: {
+        count: stats.totalPackagesPending,
+        changePercent: stats.pendingChangePercent,
+        trend: getTrend(stats.pendingChangePercent),
+      },
+      cancelled: {
+        count: stats.totalPackagesCancelled,
+        changePercent: stats.cancelledChangePercent,
+        trend: getTrend(stats.cancelledChangePercent),
+      },
+    };
+  }
+
+  /**
+   * Get performance chart data - weekly line chart with multiple series
+   */
+  async getPerformanceChart(filter: PerformanceChartQueryDto): Promise<PerformanceChartResponse> {
+    const { dateFrom, dateTo, period } = this.getDateRange(filter);
+
+    // Get daily data for the period
+    const days = this.getDaysInRange(dateFrom, dateTo);
+    const labels = days.map((d) => this.formatDayLabel(d));
+
+    // Initialize datasets
+    const datasets: { [key: string]: number[] } = {
+      Received: [],
+      Delivered: [],
+      Transferred: [],
+      Returned: [],
+      Pending: [],
+    };
+
+    // Fetch data for each day
+    for (const day of days) {
+      const nextDay = new Date(day);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const counts = await this.getPackageCountsForDay(day, nextDay, filter.organizationId, filter.warehouseId);
+      datasets.Received.push(counts.received);
+      datasets.Delivered.push(counts.delivered);
+      datasets.Transferred.push(counts.transferred);
+      datasets.Returned.push(counts.returned);
+      datasets.Pending.push(counts.pending);
+    }
+
+    return {
+      period,
+      labels,
+      datasets: [
+        { name: 'Received', color: '#10B981', data: datasets.Received },
+        { name: 'Delivered', color: '#F59E0B', data: datasets.Delivered },
+        { name: 'Transferred', color: '#3B82F6', data: datasets.Transferred },
+        { name: 'Returned', color: '#EF4444', data: datasets.Returned },
+        { name: 'Pending', color: '#8B5CF6', data: datasets.Pending },
+      ],
+    };
+  }
+
+  /**
+   * Get recent transactions for the dashboard table
+   */
+  async getRecentTransactions(query: RecentTransactionsQueryDto): Promise<RecentTransactionsResponse> {
+    const { dateFrom, dateTo } = this.getDateRange(query);
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const offset = (page - 1) * limit;
+
+    // Build where conditions
+    const whereConditions = [
+      gte(schema.packages.createdAt, dateFrom),
+      lte(schema.packages.createdAt, dateTo),
+      eq(schema.packages.isDeleted, false),
+    ];
+
+    if (query.organizationId) {
+      whereConditions.push(eq(schema.packages.organizationId, query.organizationId));
+    }
+    if (query.warehouseId) {
+      whereConditions.push(eq(schema.packages.warehouseId, query.warehouseId));
+    }
+    if (query.status) {
+      whereConditions.push(eq(schema.packages.status, query.status));
+    }
+    if (query.search) {
+      whereConditions.push(
+        or(
+          like(schema.packages.trackingNumber, `%${query.search}%`),
+          like(schema.packages.recipientName, `%${query.search}%`),
+          like(schema.packages.invoiceNumber, `%${query.search}%`),
+        ) as any,
+      );
+    }
+
+    // Get total count
+    const [totalResult] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(...whereConditions));
+
+    const total = totalResult?.count || 0;
+
+    // Get transactions with user joins
+    const transactions = await this.db
+      .select({
+        id: schema.packages.id,
+        createdAt: schema.packages.createdAt,
+        status: schema.packages.status,
+        invoiceNumber: schema.packages.invoiceNumber,
+        trackingNumber: schema.packages.trackingNumber,
+        recipientName: schema.packages.recipientName,
+        createdById: schema.packages.createdBy,
+        creatorFirstName: schema.users.firstName,
+        creatorLastName: schema.users.lastName,
+      })
+      .from(schema.packages)
+      .leftJoin(schema.users, eq(schema.packages.createdBy, schema.users.id))
+      .where(and(...whereConditions))
+      .orderBy(desc(schema.packages.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    const statusColors: Record<string, string> = {
+      Delivered: '#10B981',
+      Received: '#3B82F6',
+      Pending: '#F59E0B',
+      Returned: '#EF4444',
+      Cancelled: '#6B7280',
+      Transferred: '#8B5CF6',
+      'In Transit': '#06B6D4',
+    };
+
+    return {
+      transactions: transactions.map((t) => ({
+        id: t.id,
+        date: t.createdAt || new Date(),
+        deliveredBy: {
+          id: t.createdById || '',
+          name: `${t.creatorFirstName || ''} ${t.creatorLastName || ''}`.trim() || 'Unknown',
+        },
+        receiver: {
+          id: '',
+          name: t.recipientName || 'Unknown',
+        },
+        status: t.status || 'Unknown',
+        statusColor: statusColors[t.status || ''] || '#6B7280',
+        invoice: t.invoiceNumber || '',
+        tracking: t.trackingNumber || '',
+      })),
+      total,
+      page,
+      pageSize: limit,
+      hasMore: offset + limit < total,
+    };
+  }
+
+  /**
+   * Get recent activity summary for dashboard (Dispatched, Blacklist, Linked devices, Received)
+   */
+  async getActivitySummary(filter: DashboardFilterDto): Promise<RecentActivitySummaryResponse> {
+    const { dateFrom, dateTo } = this.getDateRange(filter);
+
+    // Get dispatched count (packages that are out for delivery)
+    const [dispatchedResult] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(
+        and(
+          gte(schema.packages.createdAt, dateFrom),
+          lte(schema.packages.createdAt, dateTo),
+          or(
+            eq(schema.packages.status, 'Dispatched'),
+            eq(schema.packages.status, 'Out for Delivery'),
+            eq(schema.packages.status, 'In Transit'),
+          ),
+          filter.organizationId ? eq(schema.packages.organizationId, filter.organizationId) : sql`1=1`,
+        ),
+      );
+
+    // Get received count
+    const [receivedResult] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(
+        and(
+          gte(schema.packages.createdAt, dateFrom),
+          lte(schema.packages.createdAt, dateTo),
+          eq(schema.packages.status, 'Received'),
+          filter.organizationId ? eq(schema.packages.organizationId, filter.organizationId) : sql`1=1`,
+        ),
+      );
+
+    // Get linked devices count (from users_trusted_devices table)
+    let linkedDevicesCount = 0;
+    try {
+      const [devicesResult] = await this.db
+        .select({ count: count() })
+        .from(schema.usersTrustedDevices)
+        .where(
+          and(
+            gte(schema.usersTrustedDevices.createdAt, dateFrom),
+            lte(schema.usersTrustedDevices.createdAt, dateTo),
+          ),
+        );
+      linkedDevicesCount = devicesResult?.count || 0;
+    } catch {
+      // Table might not exist or have different structure
+      linkedDevicesCount = 0;
+    }
+
+    // Get blacklist count - currently not in schema, return 0
+    // This would need a separate blacklist table or field on users
+    const blacklistCount = 0;
+
+    return {
+      dispatched: dispatchedResult?.count || 0,
+      blacklist: blacklistCount,
+      linkedDevices: linkedDevicesCount,
+      received: receivedResult?.count || 0,
     };
   }
 
@@ -313,6 +577,13 @@ export class DashboardService {
       case DashboardPeriod.LAST_7_DAYS:
         dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
+      case DashboardPeriod.THIS_WEEK:
+        // Get Monday of current week
+        const dayOfWeek = now.getDay();
+        const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+        dateFrom.setHours(0, 0, 0, 0);
+        break;
       case DashboardPeriod.THIS_MONTH:
         dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
@@ -334,7 +605,7 @@ export class DashboardService {
     dateTo: Date,
     organizationId?: string,
     warehouseId?: string,
-  ): Promise<{ received: number; delivered: number; pending: number; returned: number }> {
+  ): Promise<{ received: number; delivered: number; pending: number; returned: number; transferred: number; cancelled: number }> {
     const baseWhere = and(
       gte(schema.packages.createdAt, dateFrom),
       lte(schema.packages.createdAt, dateTo),
@@ -368,12 +639,96 @@ export class DashboardService {
       .from(schema.packages)
       .where(and(baseWhere, eq(schema.packages.status, 'Returned')));
 
+    const [transferred] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, eq(schema.packages.status, 'Transferred')));
+
+    const [cancelled] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, eq(schema.packages.status, 'Cancelled')));
+
     return {
       received: received?.count || 0,
       delivered: delivered?.count || 0,
       pending: pending?.count || 0,
       returned: returned?.count || 0,
+      transferred: transferred?.count || 0,
+      cancelled: cancelled?.count || 0,
     };
+  }
+
+  private async getPackageCountsForDay(
+    dateFrom: Date,
+    dateTo: Date,
+    organizationId?: string,
+    warehouseId?: string,
+  ): Promise<{ received: number; delivered: number; pending: number; returned: number; transferred: number }> {
+    const baseWhere = and(
+      gte(schema.packages.createdAt, dateFrom),
+      lte(schema.packages.createdAt, dateTo),
+      organizationId ? eq(schema.packages.organizationId, organizationId) : sql`1=1`,
+      warehouseId ? eq(schema.packages.warehouseId, warehouseId) : sql`1=1`,
+      eq(schema.packages.isDeleted, false),
+    );
+
+    const [received] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, eq(schema.packages.status, 'Received')));
+
+    const [delivered] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, eq(schema.packages.status, 'Delivered')));
+
+    const [pending] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, or(
+        eq(schema.packages.status, 'Pending'),
+        eq(schema.packages.status, 'Available'),
+        eq(schema.packages.status, 'In Storage'),
+      )));
+
+    const [returned] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, eq(schema.packages.status, 'Returned')));
+
+    const [transferred] = await this.db
+      .select({ count: count() })
+      .from(schema.packages)
+      .where(and(baseWhere, eq(schema.packages.status, 'Transferred')));
+
+    return {
+      received: received?.count || 0,
+      delivered: delivered?.count || 0,
+      pending: pending?.count || 0,
+      returned: returned?.count || 0,
+      transferred: transferred?.count || 0,
+    };
+  }
+
+  private getDaysInRange(dateFrom: Date, dateTo: Date): Date[] {
+    const days: Date[] = [];
+    const current = new Date(dateFrom);
+    current.setHours(0, 0, 0, 0);
+    
+    const end = new Date(dateTo);
+    end.setHours(23, 59, 59, 999);
+
+    while (current <= end) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return days;
+  }
+
+  private formatDayLabel(date: Date): string {
+    const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    return dayNames[date.getDay()];
   }
 
   private getActivityType(action: string | null, entityName: string | null): string {

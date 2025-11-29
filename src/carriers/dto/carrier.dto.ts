@@ -1,4 +1,13 @@
-import { IsString, IsBoolean, IsOptional, IsEmail, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsEmail,
+  IsUUID,
+  IsDateString,
+  MaxLength,
+  IsNumber,
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 /**
@@ -10,9 +19,43 @@ export class CreateCarrierDto {
   @MaxLength(500)
   profileImage?: string;
 
+  @IsOptional()
+  @IsBoolean()
+  isBusiness?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  lastName?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(255)
-  carrierName: string;
+  businessName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  legalName?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateOfBirthBusinessSince?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  federalTaxId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  stateTaxId?: string;
 
   @IsOptional()
   @IsString()
@@ -39,155 +82,110 @@ export class CreateCarrierDto {
   email?: string;
 
   @IsOptional()
+  @IsBoolean()
+  differentBillingEmail?: boolean;
+
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  billingEmail?: string;
+
+  @IsOptional()
   @IsString()
   additionalInformation?: string;
 
   @IsOptional()
   @IsUUID()
   statusId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  accountHolderId?: string;
 }
 
 /**
  * Update Carrier DTO
  */
-export class UpdateCarrierDto extends PartialType(CreateCarrierDto) {}
+export class UpdateCarrierDto extends PartialType(CreateCarrierDto) {
+  @IsOptional()
+  @IsBoolean()
+  isDeleted?: boolean;
+}
 
 /**
- * Carrier Address DTO
+ * Carrier Filter DTO
  */
-export class CreateCarrierAddressDto {
-  @IsUUID()
-  carrierId: string;
-
+export class CarrierFilterDto {
   @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  addressType?: string;
+  @IsBoolean()
+  isBusiness?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  differentRecipient?: boolean;
+  isDeleted?: boolean;
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  attentionTo?: string;
+  @MaxLength(100)
+  search?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(30)
+  @IsUUID()
+  statusId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  page?: number;
+
+  @IsOptional()
+  @IsNumber()
+  limit?: number;
+}
+
+/**
+ * Carrier Response DTO
+ */
+export interface CarrierResponseDto {
+  id: string;
+  profileImage?: string;
+  isBusiness: boolean;
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  legalName?: string;
+  dateOfBirthBusinessSince?: Date;
+  federalTaxId?: string;
+  stateTaxId?: string;
   phoneNumber?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  country?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  addressLine1?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  addressLine2?: string;
-
-  @IsOptional()
-  @IsString()
+  mobileNumber?: string;
+  differentWhatsAppNumber: boolean;
+  whatsAppNumber?: string;
+  email?: string;
+  differentBillingEmail: boolean;
+  billingEmail?: string;
   additionalInformation?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  city?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  state?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  zipCode?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  statusId?: string;
+  accountHolderId?: string;
+  isDeleted: boolean;
+  createdBy?: string;
+  createdAt: Date;
+  updatedBy?: string;
+  updatedAt: Date;
 }
 
 /**
- * Carrier Remark DTO
+ * Carrier Stats DTO
  */
-export class CreateCarrierRemarkDto {
-  @IsUUID()
-  carrierId: string;
-
-  @IsOptional()
-  @IsString()
-  message?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  status?: string;
+export interface CarrierStatsDto {
+  total: number;
+  businesses: number;
+  individuals: number;
 }
 
 /**
- * Carrier File DTO
+ * Carrier Dropdown Option
  */
-export class CreateCarrierFileDto {
-  @IsUUID()
-  carrierId: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  fileTitle?: string;
-
-  @IsOptional()
-  @IsString()
-  file?: string;
-}
-
-/**
- * Carrier API Handshake DTO
- */
-export class CreateCarrierApiHandshakeDto {
-  @IsUUID()
-  carrierId: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  apiName?: string;
-
-  @IsOptional()
-  @IsString()
-  apiEndpoint?: string;
-
-  @IsOptional()
-  @IsString()
-  apiKey?: string;
-
-  @IsOptional()
-  @IsString()
-  apiSecret?: string;
-
-  @IsOptional()
-  @IsString()
-  authType?: string;
-
-  @IsOptional()
-  @IsString()
-  additionalConfig?: string; // JSON string
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+export interface CarrierOption {
+  id: string;
+  name: string;
 }
