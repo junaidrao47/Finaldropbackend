@@ -6,6 +6,29 @@ import {
   RecentTransactionsQueryDto,
 } from './src/dashboard/dto/dashboard.dto';
 
+// Mock drizzle-orm functions
+jest.mock('drizzle-orm', () => ({
+  eq: jest.fn((a, b) => ({ type: 'eq', a, b })),
+  and: jest.fn((...conditions) => ({ type: 'and', conditions })),
+  or: jest.fn((...conditions) => ({ type: 'or', conditions })),
+  gte: jest.fn((a, b) => ({ type: 'gte', a, b })),
+  lte: jest.fn((a, b) => ({ type: 'lte', a, b })),
+  lt: jest.fn((a, b) => ({ type: 'lt', a, b })),
+  gt: jest.fn((a, b) => ({ type: 'gt', a, b })),
+  ne: jest.fn((a, b) => ({ type: 'ne', a, b })),
+  like: jest.fn((a, b) => ({ type: 'like', a, b })),
+  ilike: jest.fn((a, b) => ({ type: 'ilike', a, b })),
+  inArray: jest.fn((a, b) => ({ type: 'inArray', a, b })),
+  isNull: jest.fn((a) => ({ type: 'isNull', a })),
+  isNotNull: jest.fn((a) => ({ type: 'isNotNull', a })),
+  desc: jest.fn((col) => ({ type: 'desc', col })),
+  asc: jest.fn((col) => ({ type: 'asc', col })),
+  sql: jest.fn((template, ...args) => ({ template, args })),
+  count: jest.fn(() => ({ type: 'count' })),
+  sum: jest.fn((col) => ({ type: 'sum', col })),
+  avg: jest.fn((col) => ({ type: 'avg', col })),
+}));
+
 // Mock database helper
 const createMockDb = () => {
   const mockChain = {
@@ -553,8 +576,11 @@ describe('DashboardService', () => {
       mockDb.select.mockReturnThis();
       mockDb.from.mockReturnThis();
       mockDb.where.mockReturnThis();
-      mockDb.orderBy.mockResolvedValue(mockStatuses);
-      mockDb.limit.mockResolvedValue(mockPackages);
+      // First orderBy call returns statuses, subsequent limit().orderBy() returns packages
+      mockDb.orderBy.mockResolvedValueOnce(mockStatuses).mockReturnThis();
+      mockDb.limit.mockReturnThis();
+      // When orderBy is called after limit, resolve to packages
+      mockDb.orderBy.mockResolvedValue(mockPackages);
     });
 
     it('should return kanban board for receive transactions', async () => {
