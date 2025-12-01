@@ -41,8 +41,8 @@ describe('DashboardController', () => {
         tracking: 'TRK-001',
         invoice: 'INV-001',
         date: '2024-01-15',
-        deliveredBy: { name: 'John Doe', avatar: 'JD' },
-        receiver: { name: 'Jane Smith', address: '123 Main St' },
+        deliveredBy: { id: 'user-1', name: 'John Doe', avatar: 'JD' },
+        receiver: { id: 'recv-1', name: 'Jane Smith', avatar: 'JS' },
         status: 'Delivered',
         statusColor: '#10B981',
       },
@@ -51,13 +51,13 @@ describe('DashboardController', () => {
         tracking: 'TRK-002',
         invoice: 'INV-002',
         date: '2024-01-14',
-        deliveredBy: { name: 'Alice Brown', avatar: 'AB' },
-        receiver: { name: 'Bob Wilson', address: '456 Oak Ave' },
+        deliveredBy: { id: 'user-2', name: 'Alice Brown', avatar: 'AB' },
+        receiver: { id: 'recv-2', name: 'Bob Wilson', avatar: 'BW' },
         status: 'Pending',
         statusColor: '#F59E0B',
       },
     ],
-    totalCount: 50,
+    total: 50,
     page: 1,
     pageSize: 10,
     hasMore: true,
@@ -202,22 +202,23 @@ describe('DashboardController', () => {
       expect(mockDashboardService.getSummaryStatistics).toHaveBeenCalledWith(filter);
     });
 
-    it('should return 6 cards in summary', async () => {
+    it('should return 6 stat cards in summary', async () => {
       const result = await controller.getSummaryStatistics({});
 
-      expect(result.cards).toHaveLength(6);
+      expect(result).toHaveProperty('received');
+      expect(result).toHaveProperty('delivered');
+      expect(result).toHaveProperty('transferred');
+      expect(result).toHaveProperty('return');
+      expect(result).toHaveProperty('pending');
+      expect(result).toHaveProperty('cancelled');
     });
 
-    it('should include all required card types', async () => {
+    it('should include all required stat types', async () => {
       const result = await controller.getSummaryStatistics({});
 
-      const cardTitles = result.cards.map((card: any) => card.title);
-      expect(cardTitles).toContain('Received');
-      expect(cardTitles).toContain('Delivered');
-      expect(cardTitles).toContain('Transferred');
-      expect(cardTitles).toContain('Return');
-      expect(cardTitles).toContain('Pending');
-      expect(cardTitles).toContain('Cancelled');
+      expect(result.received).toHaveProperty('count');
+      expect(result.received).toHaveProperty('changePercent');
+      expect(result.received).toHaveProperty('trend');
     });
 
     it('should pass period filter to service', async () => {
@@ -329,7 +330,7 @@ describe('DashboardController', () => {
     it('should include pagination info', async () => {
       const result = await controller.getRecentTransactions({});
 
-      expect(result).toHaveProperty('totalCount');
+      expect(result).toHaveProperty('total');
       expect(result).toHaveProperty('page');
       expect(result).toHaveProperty('pageSize');
       expect(result).toHaveProperty('hasMore');
@@ -362,7 +363,7 @@ describe('DashboardController', () => {
     it('should handle empty results', async () => {
       mockDashboardService.getRecentTransactions = jest.fn().mockResolvedValue({
         transactions: [],
-        totalCount: 0,
+        total: 0,
         page: 1,
         pageSize: 10,
         hasMore: false,
@@ -371,7 +372,7 @@ describe('DashboardController', () => {
       const result = await controller.getRecentTransactions({});
 
       expect(result.transactions).toHaveLength(0);
-      expect(result.totalCount).toBe(0);
+      expect(result.total).toBe(0);
     });
 
     it('should handle service errors', async () => {
@@ -807,8 +808,8 @@ describe('DashboardController', () => {
     it('should handle custom date range', async () => {
       const filter: DashboardFilterDto = {
         period: DashboardPeriod.CUSTOM,
-        startDate: new Date('2024-01-01'),
-        endDate: new Date('2024-01-31'),
+        dateFrom: '2024-01-01',
+        dateTo: '2024-01-31',
       };
 
       await controller.getSummaryStatistics(filter);

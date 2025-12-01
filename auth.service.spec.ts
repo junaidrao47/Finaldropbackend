@@ -1,6 +1,13 @@
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './src/auth/auth.service';
 import { SocialProvider } from './src/auth/dto/social-auth.dto';
+
+// Mock bcrypt module
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+  hash: jest.fn().mockResolvedValue('hashed-password'),
+}));
+
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService (unit)', () => {
@@ -33,12 +40,14 @@ describe('AuthService (unit)', () => {
     };
 
     service = new AuthService(mockUsersService, mockJwtService);
+    
+    // Reset bcrypt mock
+    (bcrypt.compare as jest.Mock).mockReset();
   });
 
   describe('login', () => {
     it('returns tokens when credentials are valid', async () => {
-      // Mock bcrypt.compare to return true
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login({ 
         email: 'test@example.com', 
@@ -53,7 +62,7 @@ describe('AuthService (unit)', () => {
     });
 
     it('supports login with emailOrPhone field', async () => {
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login({ 
         emailOrPhone: 'test@example.com', 
@@ -69,7 +78,7 @@ describe('AuthService (unit)', () => {
     });
 
     it('throws when password is invalid', async () => {
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(false));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(service.login({ 
         email: 'test@example.com', 
