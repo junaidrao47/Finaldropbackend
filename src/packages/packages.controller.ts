@@ -27,6 +27,7 @@ import {
   CreatePackageFileDto,
   CreatePackageTransferDto,
   ScanPackageDto,
+  ScanPackageAliasDto,
   BulkPackageActionDto,
 } from './dto/package.dto';
 
@@ -113,6 +114,30 @@ export class PackagesController {
   @Get('remark-types')
   async getRemarkTypes() {
     return this.packagesService.getRemarkTypes();
+  }
+
+  /**
+   * Get scan page configuration (design-aligned alias)
+   * GET /packages/scan
+   */
+  @Get('scan')
+  async getScanPage() {
+    return {
+      pageTitle: 'Scan Package',
+      instruction: "Point your camera at the package's QR or barcode",
+      cameraSettings: {
+        enabled: true,
+        useDeviceCamera: true,
+        supportedFormats: ['QR_CODE', 'CODE_128', 'CODE_39', 'EAN_13'],
+      },
+      uploadOption: 'Upload QR code or barcode',
+      actions: {
+        cancel: {
+          label: 'Cancel',
+          action: 'back_to_dashboard',
+        },
+      },
+    };
   }
 
   /**
@@ -214,6 +239,33 @@ export class PackagesController {
   }
 
   // ==================== Scan Endpoints ====================
+
+  /**
+   * Scan package alias to match design contract
+   * POST /packages/scan
+   */
+  @Post('scan')
+  async scanPackageAlias(@Body() dto: ScanPackageAliasDto, @Request() req: any) {
+    const organizationId = req.user?.organizationId || dto.warehouseId;
+    if (!organizationId) {
+      throw new BadRequestException('organization context is required to scan packages');
+    }
+
+    const scanResult = await this.packagesService.scanForReceive(
+      dto.barcode,
+      organizationId,
+      dto.warehouseId,
+    );
+
+    return {
+      status: 'success',
+      message: scanResult.message,
+      packageId: scanResult.package?.id || scanResult.trackingNumber || dto.barcode,
+      package: scanResult.package,
+      exists: scanResult.exists,
+      nextAction: scanResult.exists ? 'review_packages' : 'add_to_batch',
+    };
+  }
 
   /**
    * Scan package for receive

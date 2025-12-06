@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ReceivesController } from './receives.controller';
+import { PackagesReviewController } from './packages-review.controller';
 import { ReceivesService } from './receives.service';
 import { DrizzleModule } from '../drizzle/drizzle.module';
 import { QueueModule } from '../queue/queue.module';
@@ -27,7 +28,7 @@ import { QueueModule } from '../queue/queue.module';
       },
     ]),
   ],
-  controllers: [ReceivesController],
+  controllers: [ReceivesController, PackagesReviewController],
   providers: [ReceivesService],
   exports: [ReceivesService],
 })

@@ -264,6 +264,38 @@ export class ScanPackageDto {
   scanType?: string; // Receive, Deliver, Transfer
 }
 
+export class ScanDeviceLocationDto {
+  @IsNumber()
+  lat: number;
+
+  @IsNumber()
+  lng: number;
+}
+
+export class ScanPackageAliasDto {
+  @IsString()
+  @MaxLength(200)
+  barcode: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  format?: string; // QR_CODE | CODE_128 | CODE_39 | EAN_13
+
+  @IsOptional()
+  @IsDateString()
+  timestamp?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ScanDeviceLocationDto)
+  deviceLocation?: ScanDeviceLocationDto;
+
+  @IsOptional()
+  @IsUUID()
+  warehouseId?: string;
+}
+
 /**
  * Bulk Package Action DTO
  */
