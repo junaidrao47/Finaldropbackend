@@ -1,10 +1,10 @@
-import { DashboardService } from './src/dashboard/dashboard.service';
+import { DashboardService } from './dashboard.service';
 import {
   DashboardPeriod,
   DashboardFilterDto,
   PerformanceChartQueryDto,
   RecentTransactionsQueryDto,
-} from './src/dashboard/dto/dashboard.dto';
+} from './dto/dashboard.dto';
 
 // Mock drizzle-orm functions
 jest.mock('drizzle-orm', () => ({

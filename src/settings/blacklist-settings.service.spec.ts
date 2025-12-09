@@ -1,6 +1,6 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { BlacklistSettingsService } from './src/settings/blacklist-settings.service';
-import { BlacklistType, BlacklistStatus } from './src/settings/dto/settings-extended.dto';
+import { BlacklistSettingsService } from './blacklist-settings.service';
+import { BlacklistType, BlacklistStatus } from './dto/settings-extended.dto';
 
 // Create mock db helper
 function createMockDb() {

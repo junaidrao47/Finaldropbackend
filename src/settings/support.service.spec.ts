@@ -1,6 +1,6 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { SupportService } from './src/settings/support.service';
-import { TicketCategory, TicketPriority, TicketStatus } from './src/settings/dto/settings-extended.dto';
+import { SupportService } from './support.service';
+import { TicketCategory, TicketPriority, TicketStatus } from './dto/settings-extended.dto';
 
 // Create mock db helper
 function createMockDb() {

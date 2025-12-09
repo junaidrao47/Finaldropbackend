@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
-import { LinkedDevicesService } from './src/settings/linked-devices.service';
-import { DeviceType } from './src/settings/dto/settings-extended.dto';
+import { LinkedDevicesService } from './linked-devices.service';
+import { DeviceType } from './dto/settings-extended.dto';
 
 // Create mock db helper
 function createMockDb() {

@@ -1,12 +1,12 @@
-import { DashboardController } from './src/dashboard/dashboard.controller';
-import { DashboardService } from './src/dashboard/dashboard.service';
+import { DashboardController } from './dashboard.controller';
+import { DashboardService } from './dashboard.service';
 import {
   DashboardPeriod,
   DashboardFilterDto,
   PerformanceChartQueryDto,
   RecentTransactionsQueryDto,
   QuickStatsDto,
-} from './src/dashboard/dto/dashboard.dto';
+} from './dto/dashboard.dto';
 
 describe('DashboardController', () => {
   let controller: DashboardController;

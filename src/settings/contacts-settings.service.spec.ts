@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
-import { ContactsSettingsService } from './src/settings/contacts-settings.service';
-import { ContactType } from './src/settings/dto/settings-extended.dto';
+import { ContactsSettingsService } from './contacts-settings.service';
+import { ContactType } from './dto/settings-extended.dto';
 
 // Mock contacts data
 const mockContacts = [

@@ -1,5 +1,5 @@
-import { ContactsController } from './src/contacts/contacts.controller';
-import { ContactsService } from './src/contacts/contacts.service';
+import { ContactsController } from './contacts.controller';
+import { ContactsService } from './contacts.service';
 import {
   CreateChatSessionDto,
   CreateChatMessageDto,
@@ -9,7 +9,7 @@ import {
   EscalationRequestDto,
   ChatSessionStatus,
   InquiryType,
-} from './src/contacts/dto/contact.dto';
+} from './dto/contact.dto';
 
 describe('ContactsController', () => {
   let controller: ContactsController;

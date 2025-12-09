@@ -1,11 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { SettingsExtendedController } from './src/settings/settings-extended.controller';
-import { ContactsSettingsService } from './src/settings/contacts-settings.service';
-import { BlacklistSettingsService } from './src/settings/blacklist-settings.service';
-import { WarningMessagesService } from './src/settings/warning-messages.service';
-import { LinkedDevicesService } from './src/settings/linked-devices.service';
-import { SupportService } from './src/settings/support.service';
-import { ReportsService } from './src/settings/reports.service';
+import { SettingsExtendedController } from './settings-extended.controller';
+import { ContactsSettingsService } from './contacts-settings.service';
+import { BlacklistSettingsService } from './blacklist-settings.service';
+import { WarningMessagesService } from './warning-messages.service';
+import { LinkedDevicesService } from './linked-devices.service';
+import { SupportService } from './support.service';
+import { ReportsService } from './reports.service';
 import {
   ContactType,
   BlacklistType,
@@ -14,7 +14,7 @@ import {
   TicketStatus,
   TicketPriority,
   ReportType,
-} from './src/settings/dto/settings-extended.dto';
+} from './dto/settings-extended.dto';
 
 // Mock services
 const mockContactsService = {

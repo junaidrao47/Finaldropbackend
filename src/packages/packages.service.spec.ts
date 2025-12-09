@@ -1,5 +1,5 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { PackagesService, PackageStatus } from './src/packages/packages.service';
+import { PackagesService, PackageStatus } from './packages.service';
 
 // Mock drizzle-orm
 jest.mock('drizzle-orm', () => ({

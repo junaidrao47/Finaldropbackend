@@ -1,6 +1,6 @@
-import { PackagesController } from './src/packages/packages.controller';
-import { PackagesService, PackageStatus } from './src/packages/packages.service';
-import { CloudinaryService } from './src/cloudinary/cloudinary.service';
+import { PackagesController } from './packages.controller';
+import { PackagesService, PackageStatus } from './packages.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 describe('PackagesController', () => {
   let controller: PackagesController;

@@ -1,5 +1,5 @@
-import { WarehousesController } from './src/warehouses/warehouses.controller';
-import { WarehousesService } from './src/warehouses/warehouses.service';
+import { WarehousesController } from './warehouses.controller';
+import { WarehousesService } from './warehouses.service';
 
 describe('WarehousesController', () => {
   let controller: WarehousesController;

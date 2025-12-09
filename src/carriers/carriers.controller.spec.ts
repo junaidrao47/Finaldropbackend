@@ -1,6 +1,6 @@
-import { CarriersController } from './src/carriers/carriers.controller';
-import { CarriersService } from './src/carriers/carriers.service';
-import { CreateCarrierDto, UpdateCarrierDto, CarrierFilterDto } from './src/carriers/dto/carrier.dto';
+import { CarriersController } from './carriers.controller';
+import { CarriersService } from './carriers.service';
+import { CreateCarrierDto, UpdateCarrierDto, CarrierFilterDto } from './dto/carrier.dto';
 
 describe('CarriersController', () => {
   let controller: CarriersController;

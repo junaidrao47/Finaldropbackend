@@ -1,8 +1,8 @@
-import { AuthController } from './src/auth/auth.controller';
-import { AuthService } from './src/auth/auth.service';
-import { LoginDto, SwitchOrganizationDto, ForgotPasswordDto, ResetPasswordDto } from './src/auth/dto/login.dto';
-import { RegisterDto } from './src/auth/dto/register.dto';
-import { SocialLoginDto, SocialProvider } from './src/auth/dto/social-auth.dto';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { LoginDto, SwitchOrganizationDto, ForgotPasswordDto, ResetPasswordDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { SocialLoginDto, SocialProvider } from './dto/social-auth.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;

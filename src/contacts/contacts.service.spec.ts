@@ -1,4 +1,4 @@
-import { ContactsService } from './src/contacts/contacts.service';
+import { ContactsService } from './contacts.service';
 import {
   CreateChatSessionDto,
   CreateChatMessageDto,
@@ -10,7 +10,7 @@ import {
   MessageType,
   SenderType,
   InquiryType,
-} from './src/contacts/dto/contact.dto';
+} from './dto/contact.dto';
 import { NotFoundException } from '@nestjs/common';
 
 // Mock drizzle-orm functions
@@ -509,7 +509,7 @@ describe('ContactsService', () => {
       const result = await service.processAiQuery(dto);
 
       expect(result.suggestedActions).toBeDefined();
-      expect(result.suggestedActions.length).toBeGreaterThan(0);
+      expect(result.suggestedActions?.length).toBeGreaterThan(0);
     });
   });
 

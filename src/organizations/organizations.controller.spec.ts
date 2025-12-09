@@ -1,4 +1,4 @@
-import { OrganizationsController } from './src/organizations/organizations.controller';
+import { OrganizationsController } from './organizations.controller';
 
 describe('OrganizationsController (unit)', () => {
   it('switchOrganization returns success when switch succeeds', async () => {

@@ -1,5 +1,5 @@
-import { CarriersService } from './src/carriers/carriers.service';
-import { CreateCarrierDto, UpdateCarrierDto, CarrierFilterDto } from './src/carriers/dto/carrier.dto';
+import { CarriersService } from './carriers.service';
+import { CreateCarrierDto, UpdateCarrierDto, CarrierFilterDto } from './dto/carrier.dto';
 import { NotFoundException } from '@nestjs/common';
 
 // Mock drizzle-orm functions

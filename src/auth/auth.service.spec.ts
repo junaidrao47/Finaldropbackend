@@ -1,6 +1,6 @@
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { AuthService } from './src/auth/auth.service';
-import { SocialProvider } from './src/auth/dto/social-auth.dto';
+import { AuthService } from './auth.service';
+import { SocialProvider } from './dto/social-auth.dto';
 
 // Mock bcrypt module
 jest.mock('bcrypt', () => ({

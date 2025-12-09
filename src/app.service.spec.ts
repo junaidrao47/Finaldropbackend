@@ -1,4 +1,4 @@
-import { AppService } from './src/app.service';
+import { AppService } from './app.service';
 
 describe('AppService', () => {
   it('should be defined', () => {

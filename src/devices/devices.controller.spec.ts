@@ -1,5 +1,5 @@
-import { DevicesController } from './src/devices/devices.controller';
-import { DevicesService, TrustedDevice } from './src/devices/devices.service';
+import { DevicesController } from './devices.controller';
+import { DevicesService, TrustedDevice } from './devices.service';
 
 describe('DevicesController', () => {
   let controller: DevicesController;

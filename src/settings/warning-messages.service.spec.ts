@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
-import { WarningMessagesService } from './src/settings/warning-messages.service';
-import { ContactType, WarningSeverity, WarningStatus } from './src/settings/dto/settings-extended.dto';
+import { WarningMessagesService } from './warning-messages.service';
+import { ContactType, WarningSeverity, WarningStatus } from './dto/settings-extended.dto';
 
 // Create mock db helper
 function createMockDb() {

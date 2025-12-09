@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { DevicesService, TrustedDevice } from './src/devices/devices.service';
+import { DevicesService, TrustedDevice } from './devices.service';
 
 jest.mock('./src/drizzle/drizzle-client', () => {
   const pool = { query: jest.fn() };

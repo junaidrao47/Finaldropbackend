@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
-import { ReportsService } from './src/settings/reports.service';
-import { ReportType } from './src/settings/dto/settings-extended.dto';
+import { ReportsService } from './reports.service';
+import { ReportType } from './dto/settings-extended.dto';
 
 // Create mock db helper
 function createMockDb() {
