@@ -46,13 +46,10 @@ describe('PackagesController', () => {
       search: jest.fn().mockResolvedValue([mockPackage]),
       getRemarkTypes: jest.fn().mockResolvedValue([{ id: 1, name: 'General' }]),
       getRemarks: jest.fn().mockResolvedValue([]),
-      addFile: jest.fn().mockResolvedValue({ id: 'file-001' }),
       getFiles: jest.fn().mockResolvedValue([]),
       deleteFile: jest.fn().mockResolvedValue(undefined),
-      transfer: jest.fn().mockResolvedValue(mockPackage),
       bulkUpdateStatus: jest.fn().mockResolvedValue({ updated: 5 }),
       bulkDelete: jest.fn().mockResolvedValue({ deleted: 3 }),
-      softDelete: jest.fn().mockResolvedValue(undefined),
     };
 
     mockCloudinaryService = {

@@ -379,8 +379,13 @@ describe('ContactsService', () => {
     const mockMessages = [mockMessage, { ...mockMessage, id: 2 }];
 
     beforeEach(() => {
-      mockDb.limit.mockReturnValueOnce([mockSession]); // For getSession - return not resolved
-      mockDb.where.mockResolvedValueOnce([{ count: 2 }]); // For count
+      // Mock for getSession() call - need complete chain ending in .limit()
+      mockDb.where.mockReturnValueOnce({
+        limit: jest.fn().mockResolvedValue([mockSession]), // Return session for getSession
+      });
+      // Mock for count query
+      mockDb.where.mockResolvedValueOnce([{ count: 2 }]);
+      // Mock for messages query
       mockDb.where.mockReturnValueOnce({
         orderBy: jest.fn().mockReturnValue({
           limit: jest.fn().mockReturnValue({
@@ -398,9 +403,16 @@ describe('ContactsService', () => {
     });
 
     it('should throw NotFoundException for invalid session', async () => {
-      mockDb.limit.mockReturnValue([]); // Return empty synchronously
+      // Create a new service instance with fresh mocks
+      const freshMockDb = createMockDb();
+      freshMockDb.select.mockReturnThis();
+      freshMockDb.from.mockReturnThis();
+      freshMockDb.where.mockReturnValue({
+        limit: jest.fn().mockResolvedValue([]), // Return empty for getSession
+      });
+      const freshService = new ContactsService(freshMockDb as any);
 
-      await expect(service.getMessages(999)).rejects.toThrow(NotFoundException);
+      await expect(freshService.getMessages(999)).rejects.toThrow(NotFoundException);
     });
 
     it('should handle pagination', async () => {

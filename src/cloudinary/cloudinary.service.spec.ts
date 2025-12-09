@@ -89,7 +89,7 @@ describe('CloudinaryService', () => {
     expect(db.values).toHaveBeenCalledWith(
       expect.objectContaining({
         organizationId: 'org-1',
-        fileTitle: expect.stringContaining('Package Image'),
+        fileTitle: expect.stringContaining('package_image'),
       }),
     );
   });
