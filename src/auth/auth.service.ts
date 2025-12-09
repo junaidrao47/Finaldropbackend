@@ -7,6 +7,8 @@ import { SocialLoginDto, SocialProvider, SocialUserProfile, SocialAuthResponse }
 import { UserWithRelations } from '../drizzle/repositories/users.repository';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import * as bcrypt from 'bcrypt';
+import * as admin from 'firebase-admin';
+import configuration from '../config/configuration';
 
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRES = '15m';
@@ -20,6 +22,28 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
+
+  /**
+   * Lazy Firebase Admin initialization to avoid issues during tests/build.
+   */
+  private get firebaseApp(): admin.app.App | null {
+    const firebaseCfg = configuration.social.firebase;
+    if (!firebaseCfg.projectId || !firebaseCfg.clientEmail || !firebaseCfg.privateKey) {
+      return null;
+    }
+
+    if (admin.apps.length > 0) {
+      return admin.app();
+    }
+
+    return admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: firebaseCfg.projectId,
+        clientEmail: firebaseCfg.clientEmail,
+        privateKey: firebaseCfg.privateKey,
+      }),
+    });
+  }
 
   /**
    * Register a new user with the design fields:
@@ -183,8 +207,38 @@ export class AuthService {
         return this.verifyFacebookToken(dto.accessToken);
       case SocialProvider.APPLE:
         return this.verifyAppleToken(dto.accessToken, dto.idToken);
+      case SocialProvider.FIREBASE:
+        return this.verifyFirebaseToken(dto.accessToken);
       default:
         throw new BadRequestException('Unsupported social provider');
+    }
+  }
+
+  /**
+   * Verify Firebase ID token coming from frontend Firebase Auth.
+   */
+  private async verifyFirebaseToken(idToken: string): Promise<SocialUserProfile | null> {
+    const app = this.firebaseApp;
+    if (!app) {
+      throw new BadRequestException('Firebase is not configured on the server');
+    }
+
+    try {
+      const decoded = await app.auth().verifyIdToken(idToken);
+
+      return {
+        provider: SocialProvider.FIREBASE,
+        providerId: decoded.uid,
+        email: decoded.email || '',
+        firstName: decoded.name?.split(' ')[0] || '',
+        lastName: decoded.name?.split(' ').slice(1).join(' ') || '',
+        displayName: decoded.name || decoded.email || decoded.uid,
+        profileImage: decoded.picture,
+        emailVerified: decoded.email_verified,
+      };
+    } catch (error) {
+      console.error('Firebase token verification failed:', error);
+      throw new UnauthorizedException('Firebase authentication failed');
     }
   }
 

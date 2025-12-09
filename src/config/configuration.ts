@@ -40,6 +40,12 @@ const configuration = {
       keyId: process.env.APPLE_KEY_ID || '',
       privateKey: process.env.APPLE_PRIVATE_KEY || '',
     },
+    firebase: {
+      projectId: process.env.FIREBASE_PROJECT_ID || '',
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+      privateKey:
+        (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n') || '',
+    },
   },
 };
 
