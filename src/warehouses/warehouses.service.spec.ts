@@ -322,7 +322,7 @@ describe('WarehousesService', () => {
   // ==================== getActiveWarehouses Tests ====================
   describe('getActiveWarehouses', () => {
     it('should return active warehouses for organization', async () => {
-      mockDb.where.mockResolvedValueOnce([mockWarehouse, { ...mockWarehouse, id: 'wh-002' }]);
+      mockDb.orderBy.mockReturnValue([mockWarehouse, { ...mockWarehouse, id: 'wh-002' }]);
 
       const result = await service.getActiveWarehouses('org-001');
 
@@ -330,7 +330,7 @@ describe('WarehousesService', () => {
     });
 
     it('should return empty array when no active warehouses', async () => {
-      mockDb.where.mockResolvedValueOnce([]);
+      mockDb.orderBy.mockReturnValue([]);
 
       const result = await service.getActiveWarehouses('org-001');
 

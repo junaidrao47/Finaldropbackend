@@ -379,7 +379,7 @@ describe('ContactsService', () => {
     const mockMessages = [mockMessage, { ...mockMessage, id: 2 }];
 
     beforeEach(() => {
-      mockDb.limit.mockResolvedValueOnce([mockSession]); // For getSession
+      mockDb.limit.mockReturnValueOnce([mockSession]); // For getSession - return not resolved
       mockDb.where.mockResolvedValueOnce([{ count: 2 }]); // For count
       mockDb.where.mockReturnValueOnce({
         orderBy: jest.fn().mockReturnValue({
@@ -398,8 +398,7 @@ describe('ContactsService', () => {
     });
 
     it('should throw NotFoundException for invalid session', async () => {
-      mockDb.limit.mockReset();
-      mockDb.limit.mockResolvedValue([]);
+      mockDb.limit.mockReturnValue([]); // Return empty synchronously
 
       await expect(service.getMessages(999)).rejects.toThrow(NotFoundException);
     });

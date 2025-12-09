@@ -27,6 +27,7 @@ jest.mock('cloudinary', () => ({
       }),
       destroy: jest.fn(),
     },
+    url: jest.fn((publicId, options) => `https://res.cloudinary.com/mock/image/upload/${publicId}`),
   },
 }));
 

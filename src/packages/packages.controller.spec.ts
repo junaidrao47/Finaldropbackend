@@ -45,7 +45,6 @@ describe('PackagesController', () => {
       }),
       search: jest.fn().mockResolvedValue([mockPackage]),
       getRemarkTypes: jest.fn().mockResolvedValue([{ id: 1, name: 'General' }]),
-      addRemark: jest.fn().mockResolvedValue({ id: 'remark-001', content: 'Test' }),
       getRemarks: jest.fn().mockResolvedValue([]),
       addFile: jest.fn().mockResolvedValue({ id: 'file-001' }),
       getFiles: jest.fn().mockResolvedValue([]),

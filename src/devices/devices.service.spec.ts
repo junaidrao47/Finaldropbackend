@@ -1,12 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
 import { DevicesService, TrustedDevice } from './devices.service';
 
-jest.mock('./src/drizzle/drizzle-client', () => {
+jest.mock('../drizzle/drizzle-client', () => {
   const pool = { query: jest.fn() };
   return { pool };
 });
 
-const { pool: mockPool } = require('./src/drizzle/drizzle-client');
+const { pool: mockPool } = require('../drizzle/drizzle-client');
 
 describe('DevicesService', () => {
   let service: DevicesService;
